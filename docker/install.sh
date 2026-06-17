@@ -29,12 +29,16 @@ fi
 cd /opt/crm-analytics/docker
 
 if [ ! -f .env ]; then
-  cp .env.template .env
-  # Auto-generate secrets
   PG_PASS=$(openssl rand -hex 16)
   JWT_SECRET=$(openssl rand -hex 32)
-  sed -i "s/change_me_strong_password/$PG_PASS/" .env
-  sed -i "s/change_me_jwt_secret/$JWT_SECRET/" .env
+  cat > .env <<ENVEOF
+POSTGRES_PASSWORD=${PG_PASS}
+JWT_SECRET=${JWT_SECRET}
+KOMMO_ACCOUNTS=
+AMO_ACCOUNTS=
+EXCHANGE_RATES=
+SYNC_INTERVAL_MINUTES=15
+ENVEOF
   echo ""
   echo ">>> .env created with auto-generated secrets."
 fi
