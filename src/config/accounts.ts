@@ -11,6 +11,14 @@ export const FieldMappingsSchema = z.object({
   floorNumber: z.string().optional(),
   totalFloors: z.string().optional(),
   objectCondition: z.string().optional(),
+  utmSource: z.string().optional(),
+  utmMedium: z.string().optional(),
+  utmCampaign: z.string().optional(),
+  utmContent: z.string().optional(),
+  utmTerm: z.string().optional(),
+  utmReferrer: z.string().optional(),
+  mql: z.string().optional(),
+  sql: z.string().optional(),
 });
 export type FieldMappings = z.infer<typeof FieldMappingsSchema>;
 

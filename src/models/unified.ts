@@ -29,6 +29,17 @@ export interface UnifiedLead {
   totalFloors: number | null;
   objectCondition: string | null;
 
+  utm: {
+    source: string | null;
+    medium: string | null;
+    campaign: string | null;
+    content: string | null;
+    term: string | null;
+    referrer: string | null;
+  } | null;
+  mql: boolean | null;
+  sql: boolean | null;
+
   value: number;
   currency: string;
   createdAt: string;

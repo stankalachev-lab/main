@@ -143,6 +143,19 @@ export function transformLeads(
     const rawFloor = pickCustomFieldValue(cf, fm.floorNumber);
     const rawTotalFloors = pickCustomFieldValue(cf, fm.totalFloors);
 
+    const utmData = {
+      source: pickCustomFieldValue(cf, fm.utmSource),
+      medium: pickCustomFieldValue(cf, fm.utmMedium),
+      campaign: pickCustomFieldValue(cf, fm.utmCampaign),
+      content: pickCustomFieldValue(cf, fm.utmContent),
+      term: pickCustomFieldValue(cf, fm.utmTerm),
+      referrer: pickCustomFieldValue(cf, fm.utmReferrer),
+    };
+    const hasUtm = Object.values(utmData).some((v) => v !== null);
+
+    const rawMql = pickCustomFieldValue(cf, fm.mql);
+    const rawSql = pickCustomFieldValue(cf, fm.sql);
+
     return {
       id: `${account.id}_${rl.id}`,
       sourceAccountId: account.id,
@@ -166,6 +179,10 @@ export function transformLeads(
       floorNumber: rawFloor ? Number(rawFloor) : null,
       totalFloors: rawTotalFloors ? Number(rawTotalFloors) : null,
       objectCondition: pickCustomFieldValue(cf, fm.objectCondition),
+
+      utm: hasUtm ? utmData : null,
+      mql: fm.mql ? (rawMql === "1" || rawMql === "true") : null,
+      sql: fm.sql ? (rawSql === "1" || rawSql === "true") : null,
 
       value: rl.price,
       currency: account.currency,

@@ -63,6 +63,11 @@ export interface AgentPerformanceMetric {
   activePipelineValue: number; activePipelineCount: number
 }
 
+export interface LeadUtm {
+  source: string | null; medium: string | null; campaign: string | null
+  content: string | null; term: string | null; referrer: string | null
+}
+
 export interface UnifiedLead {
   id: string; sourceAccountId: string; sourceLeadId: string; name: string
   status: 'open' | 'won' | 'lost' | 'deleted'
@@ -71,7 +76,11 @@ export interface UnifiedLead {
   propertyType: string | null; propertyAddress: string | null; dealSide: string | null
   areaM2: number | null; value: number; currency: string
   createdAt: string; updatedAt: string; closedAt: string | null
-  tags: string[]; customFields: Record<string, unknown>
+  tags: string[]
+  utm: LeadUtm | null
+  mql: boolean | null
+  sql: boolean | null
+  customFields: Record<string, unknown>
 }
 
 export interface LeadsResponse { total: number; page: number; limit: number; items: UnifiedLead[] }
