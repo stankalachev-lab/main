@@ -1,0 +1,51 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: always
+    environment:
+      POSTGRES_DB: crm_analytics
+      POSTGRES_USER: crm
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U crm -d crm_analytics"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    restart: always
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgres://crm:${POSTGRES_PASSWORD}@postgres:5432/crm_analytics
+      JWT_SECRET: ${JWT_SECRET}
+      KOMMO_ACCOUNTS: ${KOMMO_ACCOUNTS:-}
+      AMO_ACCOUNTS: ${AMO_ACCOUNTS:-}
+      EXCHANGE_RATES: ${EXCHANGE_RATES:-}
+      SYNC_INTERVAL_MINUTES: ${SYNC_INTERVAL_MINUTES:-15}
+      PORT: 3000
+      NODE_ENV: production
+    ports:
+      - "127.0.0.1:3000:3000"
+
+  nginx:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.nginx
+    restart: always
+    depends_on:
+      - api
+    ports:
+      - "80:80"
+    volumes:
+      - nginxlogs:/var/log/nginx
+
+volumes:
+  pgdata:
+  nginxlogs:
