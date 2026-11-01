@@ -143,6 +143,34 @@ sudo -u old-claude docker ps 2>&1 | head -1     # ожидается permission 
 - Срок действия входа может закончиться. Признак: в журнале ошибка авторизации. Решение: повторить шаг 2.
 - Не трогайте Codex, Telegram, production и HoS Kit: в `ReadWritePaths` только `<WORKDIR>` и HOME old-claude.
 
+## Что известно из проектной документации (NRE, Google Drive)
+
+Прочитано 2026-11-01: `stankalachev-lab/NRE` (dev/DESIGN_AUTH_OWN.md, dev/WORKING_IN_PARALLEL.md, dev/TWO_SERVER_DEPLOY.md, ops/two-server/README.md, dev/tasks/T-sales-production-prep-20261029.md), а также Google Drive: «Правила совместной работы Codex и Claude» и база знаний headofsales.me.
+
+**Роль OLD.** Control plane: worktrees, проверки, сборка, координатор, Telegram publisher, NRE stage. Production работает на NEW, 72.61.209.181.
+
+**Как туда заходят сейчас** (замер от 28.08.2026, DESIGN_AUTH_OWN.md §6.4):
+- root по SSH. Пароль владелец передаёт на каждый вызов через Node-пакет `ssh2` (`vps_run.js`), он нигде не хранится;
+- один ключ в `/root/.ssh/authorized_keys`, ed25519, комментарий `stanislav`. Это рабочая станция владельца;
+- `sshd -T`: `permitrootlogin yes`, `passwordauthentication yes`.
+
+Итог: «существующий профиль подключения» привязан к ноутбуку (ключ) или к паролю, который вводится каждый раз. В облачную сессию без передачи секрета его не перенести, а правила проекта это запрещают.
+
+**Порт 48222** в документации относится к NEW (`root@72.61.209.181:48222`, только ключ издателя с forced command). Для OLD нестандартный порт в репозитории не указан. Через облачный прокси на 187.77.122.166:48222 SSH-баннер не пришёл.
+
+**Харнесс Claude** (`/opt/old-harness`, `old-claude`, ready guard) в репозитории NRE не описан. Его документация, видимо, лежит только на сервере, например в `/var/lib/nre-codex/projects/headofsales/technical-kb/README.md`. Шаг 1 обязателен.
+
+**Правила совместной работы с Codex (их должен соблюдать Claude на OLD):**
+- координация: `coordination/CURRENT_COORDINATOR.json`, `coordination/README.md`, канал `tools/nre-mail` (адрес `coordinator`), ACK прочитанных сообщений;
+- черновики Codex лежат в `/var/lib/nre-codex/projects/*`, разработка идёт в `/opt/nre-work/T-*` (ветки `task/T-*`);
+- live `/opt/nre` не редактировать, checkout, stash и reset там запрещены. Docker и Git для обхода ограничений не использовать;
+- один файл одновременно правит один исполнитель. Передача через `docs/collaboration-handoff.md` по шаблону из правил;
+- релизы выпускает только `nre-ship` на NEW (решение от 25.10.2026). Claude на OLD релизы не выпускает.
+
+Для `<WORKDIR>` нужен отдельный каталог Claude, например `/var/lib/old-claude/projects/<проект>`. Каталоги Codex и `/opt/nre` в `ReadWritePaths` не включать.
+
+**Риск, найденный по ходу (вне этой задачи):** вход root по паролю включён. Отключать его не нужно, пока это единственный запасной вход (см. §6.4 «no break-glass»). Решение остаётся за владельцем.
+
 ## Источники
 
 - https://code.claude.com/docs/en/remote-control : только исходящий HTTPS на 443, вход через claude.ai, workspace trust, tmux для удалённых машин.
